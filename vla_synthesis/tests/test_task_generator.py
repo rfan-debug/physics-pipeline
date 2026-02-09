@@ -52,6 +52,11 @@ class TestTaskGenerator(unittest.TestCase):
             if obj_name in instruction:
                 found_object = True
                 break
+
+        # Also check for "item" which is used in one of the templates
+        if "item" in instruction:
+            found_object = True
+
         self.assertTrue(found_object, f"Instruction '{instruction}' does not contain any known object name")
 
     def test_reset_task_position_bounds(self):
