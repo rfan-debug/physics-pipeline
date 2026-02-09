@@ -41,19 +41,52 @@ class TestSceneManager(unittest.TestCase):
         mock_gs.Scene.assert_called_with(show_viewer=True)
         self.assertEqual(manager.scene, self.mock_scene)
 
-    def test_load_robot(self):
+    def test_load_robot_franka(self):
+        # Setup mock for Franka to simulate it exists
+        mock_franka = MagicMock()
+        mock_gs.morphs.Franka = mock_franka
+        # Ensure Panda attribute doesn't interfere
+        if hasattr(mock_gs.morphs, 'Panda'):
+            del mock_gs.morphs.Panda
+
         manager = SceneManager()
         manager.load_robot()
 
         # Check add_entity called for plane and robot
-        # We expect at least 2 calls
         self.assertGreaterEqual(self.mock_scene.add_entity.call_count, 2)
 
-        # Check that one call used MJCF
-        # arguments to add_entity are (entity_object,)
-        # so we check if any call args[0] was an MJCF object
-        # which is created via gs.morphs.MJCF
-        mock_gs.morphs.MJCF.assert_called()
+        # Check that Franka was used
+        mock_franka.assert_called_with(fixed=True, pos=(0, 0, 0))
+
+    def test_load_robot_panda(self):
+        # Simulate Franka missing, but Panda exists
+        if hasattr(mock_gs.morphs, 'Franka'):
+            del mock_gs.morphs.Franka
+        mock_panda = MagicMock()
+        mock_gs.morphs.Panda = mock_panda
+
+        manager = SceneManager()
+        manager.load_robot()
+
+        mock_panda.assert_called_with(fixed=True, pos=(0, 0, 0))
+
+    def test_load_robot_fallback(self):
+        # Simulate both missing
+        if hasattr(mock_gs.morphs, 'Franka'):
+            del mock_gs.morphs.Franka
+        if hasattr(mock_gs.morphs, 'Panda'):
+            del mock_gs.morphs.Panda
+
+        manager = SceneManager()
+        # Mock MJCF
+        mock_mjcf = MagicMock()
+        mock_gs.morphs.MJCF = mock_mjcf
+
+        with self.assertWarns(UserWarning):
+            manager.load_robot()
+
+        # Should call MJCF
+        mock_mjcf.assert_called()
 
     def test_setup_camera(self):
         manager = SceneManager()
@@ -67,16 +100,11 @@ class TestSceneManager(unittest.TestCase):
         self.assertIn('lookat', kwargs)
 
         # Check randomization
-        # We can't check exact values easily, but we can check they are within range
-        # base_pos = [1.0, 0.0, 0.8]
-        # range +/- 0.05
         pos = kwargs['pos']
         self.assertTrue(0.95 <= pos[0] <= 1.05)
         self.assertTrue(-0.05 <= pos[1] <= 0.05)
         self.assertTrue(0.75 <= pos[2] <= 0.85)
 
-        # lookat target = [0.5, 0.0, 0.0]
-        # range +/- 0.02
         lookat = kwargs['lookat']
         self.assertTrue(0.48 <= lookat[0] <= 0.52)
         self.assertTrue(-0.02 <= lookat[1] <= 0.02)
@@ -117,6 +145,18 @@ class TestSceneManager(unittest.TestCase):
         manager = SceneManager()
         with self.assertRaises(RuntimeError):
             manager.render()
+
+    def test_reset(self):
+        manager = SceneManager()
+
+        # Mock methods to verify they are called
+        manager.setup_camera = MagicMock()
+        manager.randomize_lighting = MagicMock()
+
+        manager.reset()
+
+        manager.setup_camera.assert_called_once()
+        manager.randomize_lighting.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()

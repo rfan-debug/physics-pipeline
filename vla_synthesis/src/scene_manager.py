@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 # Try importing genesis, if not available, it will be mocked in tests or fail if not installed in production
 try:
@@ -15,8 +16,6 @@ class SceneManager:
             debug (bool): If True, shows the viewer. Defaults to False (headless).
         """
         if gs is None:
-            # This check allows the code to be imported for testing without genesis installed,
-            # but will fail if instantiated without mocking gs.
             raise ImportError("Genesis library is not installed. Please install it to use SceneManager.")
 
         # Initialize Genesis
@@ -40,15 +39,30 @@ class SceneManager:
         )
 
         # Load Franka Panda
-        # Using MJCF as it is a common format for Franka in physics engines
-        # The path 'xml/franka_emika_panda/panda.xml' is a placeholder for the actual asset path in Genesis
-        self.robot = self.scene.add_entity(
-            gs.morphs.MJCF(file='xml/franka_emika_panda/panda.xml'),
-        )
-
-        # Fix base to (0, 0, 0)
-        # Genesis entities are usually added at origin by default unless specified otherwise.
-        # If explicit fixing is needed, it would be done here.
+        # Try to use standard asset loader first
+        try:
+            if hasattr(gs.morphs, 'Franka'):
+                self.robot = self.scene.add_entity(
+                    gs.morphs.Franka(fixed=True, pos=(0, 0, 0))
+                )
+            elif hasattr(gs.morphs, 'Panda'):
+                 self.robot = self.scene.add_entity(
+                    gs.morphs.Panda(fixed=True, pos=(0, 0, 0))
+                )
+            else:
+                # Fallback to MJCF if specific class not found
+                # This path is a placeholder and might need adjustment based on actual asset location
+                warnings.warn("Standard Franka/Panda asset not found in gs.morphs. Trying MJCF with placeholder path.")
+                self.robot = self.scene.add_entity(
+                    gs.morphs.MJCF(
+                        file='xml/franka_emika_panda/panda.xml',
+                        pos=(0, 0, 0),
+                        fixed=True,
+                    ),
+                )
+        except Exception as e:
+            # Re-raise with context
+            raise RuntimeError(f"Failed to load robot asset: {e}") from e
 
     def setup_camera(self):
         """
@@ -70,10 +84,6 @@ class SceneManager:
         look_at = look_at_target + target_noise
 
         # Add or update camera
-        # If camera exists, we might need to remove it or update its pose.
-        # For this implementation, we assume we are adding it for the first time or the engine handles it.
-        # If genesis allows updating pose, we should do that.
-
         if self.camera is None:
             self.camera = self.scene.add_camera(
                 res=(640, 480),
@@ -83,16 +93,14 @@ class SceneManager:
                 GUI=False
             )
         else:
-            # Assuming set_pose or similar method exists for updating
-            # If not, one might need to re-create the camera
+            # Update existing camera pose
+            # Assuming set_pose method exists for updating
             if hasattr(self.camera, 'set_pose'):
                 self.camera.set_pose(pos=cam_pos, lookat=look_at)
+            # Fallback for different API styles, or re-add logic if needed
             elif hasattr(self.camera, 'set_position') and hasattr(self.camera, 'set_lookat'):
                 self.camera.set_position(cam_pos)
                 self.camera.set_lookat(look_at)
-            else:
-                 # Fallback: re-add camera (logic might depend on engine specifics)
-                 pass
 
     def randomize_lighting(self):
         """
@@ -145,3 +153,10 @@ class SceneManager:
         seg = self.camera.get_segmentation(return_numpy=True) if hasattr(self.camera, 'get_segmentation') else None
 
         return rgb, depth, seg
+
+    def reset(self):
+        """
+        Reset the scene, applying domain randomization to camera and lighting.
+        """
+        self.setup_camera()
+        self.randomize_lighting()
