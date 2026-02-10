@@ -39,7 +39,7 @@ class SceneManager:
         )
 
         # Load Franka Panda
-        # Try to use standard asset loader first
+        # Prioritize standard asset loader
         try:
             if hasattr(gs.morphs, 'Franka'):
                 self.robot = self.scene.add_entity(
@@ -51,7 +51,6 @@ class SceneManager:
                 )
             else:
                 # Fallback to MJCF if specific class not found
-                # This path is a placeholder and might need adjustment based on actual asset location
                 warnings.warn("Standard Franka/Panda asset not found in gs.morphs. Trying MJCF with placeholder path.")
                 self.robot = self.scene.add_entity(
                     gs.morphs.MJCF(
