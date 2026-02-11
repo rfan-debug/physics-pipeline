@@ -8,6 +8,17 @@ except ImportError:
     gs = None
 
 class SceneManager:
+    """
+    Manages the Genesis scene for VLA data synthesis.
+
+    This class handles:
+    - Initializing the physics engine and scene.
+    - Loading the robot (Franka Panda) and workspace.
+    - Setting up the camera with domain randomization (position and angle).
+    - Setting up lighting with domain randomization (position and intensity).
+    - Stepping the simulation.
+    - Rendering observations (RGB, Depth, Segmentation).
+    """
     def __init__(self, debug=False):
         """
         Initialize the Genesis scene.
@@ -39,7 +50,7 @@ class SceneManager:
         )
 
         # Load Franka Panda
-        # Prioritize standard asset loader
+        # Prioritize standard asset loader for Franka or Panda
         try:
             if hasattr(gs.morphs, 'Franka'):
                 self.robot = self.scene.add_entity(
@@ -82,7 +93,8 @@ class SceneManager:
         target_noise = np.random.uniform(-0.02, 0.02, size=3)
         look_at = look_at_target + target_noise
 
-        # Add or update camera
+        # Add or update camera.
+        # If camera doesn't exist, create it. Otherwise, update its pose to reflect randomization.
         if self.camera is None:
             self.camera = self.scene.add_camera(
                 res=(640, 480),
@@ -106,11 +118,13 @@ class SceneManager:
         Randomize light position and intensity.
         """
         # Random position
-        light_pos = np.random.uniform(low=[1.0, -1.0, 2.0], high=[2.0, 1.0, 3.0])
+        light_pos = np.random.uniform(low=[1.0, 1.0, 2.0], high=[3.0, 3.0, 4.0])
 
         # Random intensity
-        intensity = np.random.uniform(1.0, 3.0)
+        intensity = np.random.uniform(2.0, 5.0)
 
+        # Add or update light.
+        # If light doesn't exist, create it. Otherwise, update its parameters to reflect randomization.
         if self.light is None:
             self.light = self.scene.add_entity(
                 gs.morphs.Light(
@@ -128,7 +142,7 @@ class SceneManager:
 
     def step(self):
         """
-        Advance the physics simulation.
+        Advance the physics simulation by one step.
         """
         self.scene.step()
 
@@ -145,7 +159,7 @@ class SceneManager:
         # Trigger rendering
         self.camera.render()
 
-        # Retrieve data
+        # Retrieve data from camera
         # Assuming standard return types (numpy arrays)
         rgb = self.camera.get_color(return_numpy=True) if hasattr(self.camera, 'get_color') else None
         depth = self.camera.get_depth(return_numpy=True) if hasattr(self.camera, 'get_depth') else None
