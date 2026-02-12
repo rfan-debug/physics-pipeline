@@ -1,5 +1,6 @@
 import numpy as np
 import warnings
+from typing import Tuple, Optional
 
 # Try importing genesis, if not available, it will be mocked in tests or fail if not installed in production
 try:
@@ -19,7 +20,7 @@ class SceneManager:
     - Stepping the simulation.
     - Rendering observations (RGB, Depth, Segmentation).
     """
-    def __init__(self, debug=False):
+    def __init__(self, debug: bool = False):
         """
         Initialize the Genesis scene.
 
@@ -76,7 +77,7 @@ class SceneManager:
 
     def setup_camera(self):
         """
-        Add a camera looking at the workspace (approx coordinate 0.5, 0, 0).
+        Add or update a camera looking at the workspace (approx coordinate 0.5, 0, 0).
         Includes domain randomization for camera position and angle.
         """
         # Base camera position (approximate, looking at workspace)
@@ -146,7 +147,7 @@ class SceneManager:
         """
         self.scene.step()
 
-    def render(self):
+    def render(self) -> Tuple[Optional[np.ndarray], Optional[np.ndarray], Optional[np.ndarray]]:
         """
         Render the scene.
 
