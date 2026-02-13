@@ -40,6 +40,8 @@ class SceneManager:
         self.camera = None
         self.light = None
 
+        self.render_res = (640, 480)
+
     def load_robot(self):
         """
         Load a Franka Panda robot from Genesis standard assets.
@@ -98,7 +100,7 @@ class SceneManager:
         # If camera doesn't exist, create it. Otherwise, update its pose to reflect randomization.
         if self.camera is None:
             self.camera = self.scene.add_camera(
-                res=(640, 480),
+                res=self.render_res,
                 pos=cam_pos,
                 lookat=look_at,
                 fov=60,
@@ -147,15 +149,22 @@ class SceneManager:
         """
         self.scene.step()
 
-    def render(self) -> Tuple[Optional[np.ndarray], Optional[np.ndarray], Optional[np.ndarray]]:
+    def render(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Render the scene.
 
         Returns:
             tuple: (rgb, depth, segmentation_mask)
         """
+        width, height = self.render_res
+
+        # Initialize zero arrays for fallback
+        zero_rgb = np.zeros((height, width, 3), dtype=np.uint8)
+        zero_depth = np.zeros((height, width), dtype=np.float32)
+        zero_seg = np.zeros((height, width), dtype=np.int32)
+
         if self.camera is None:
-            raise RuntimeError("Camera not initialized. Call setup_camera() first.")
+            return zero_rgb, zero_depth, zero_seg
 
         # Trigger rendering
         self.camera.render()
@@ -166,7 +175,12 @@ class SceneManager:
         depth = self.camera.get_depth(return_numpy=True) if hasattr(self.camera, 'get_depth') else None
         seg = self.camera.get_segmentation(return_numpy=True) if hasattr(self.camera, 'get_segmentation') else None
 
-        return rgb, depth, seg
+        # Return zeros if retrieval fails (None)
+        return (
+            rgb if rgb is not None else zero_rgb,
+            depth if depth is not None else zero_depth,
+            seg if seg is not None else zero_seg
+        )
 
     def reset(self):
         """

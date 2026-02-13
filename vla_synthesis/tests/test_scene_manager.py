@@ -128,5 +128,26 @@ class TestSceneManager(unittest.TestCase):
             mock_cam_setup.assert_called_once()
             mock_light_setup.assert_called_once()
 
+    def test_render_no_camera(self):
+        """Test rendering when camera is not initialized."""
+        # Ensure camera is None
+        self.manager.camera = None
+
+        rgb, depth, seg = self.manager.render()
+
+        # Check return types and shapes
+        self.assertIsInstance(rgb, np.ndarray)
+        self.assertIsInstance(depth, np.ndarray)
+        self.assertIsInstance(seg, np.ndarray)
+
+        self.assertEqual(rgb.shape, (480, 640, 3))
+        self.assertEqual(depth.shape, (480, 640))
+        self.assertEqual(seg.shape, (480, 640))
+
+        # Check dtype
+        self.assertEqual(rgb.dtype, np.uint8)
+        self.assertEqual(depth.dtype, np.float32)
+        self.assertEqual(seg.dtype, np.int32)
+
 if __name__ == '__main__':
     unittest.main()
