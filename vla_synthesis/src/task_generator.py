@@ -36,15 +36,24 @@ class TaskGenerator:
             "black": (0.0, 0.0, 0.0)
         }
 
-    def reset_task(self, scene):
+    def reset_task(self, scene_manager_or_scene):
         """
         Reset the task: clear previous objects, spawn a new random object, and generate instruction.
 
         Args:
-            scene: The genesis scene object.
+            scene_manager_or_scene: The genesis scene object or SceneManager instance.
+
+        Returns:
+            tuple: (instruction_string, target_object_entity)
         """
         if gs is None:
              raise ImportError("Genesis library is not installed. Please install it to use TaskGenerator.")
+
+        # Determine the actual scene object
+        if hasattr(scene_manager_or_scene, 'scene'):
+            scene = scene_manager_or_scene.scene
+        else:
+            scene = scene_manager_or_scene
 
         # Clear previous objects if supported
         # We try to remove the entity if the scene supports it
@@ -104,6 +113,8 @@ class TaskGenerator:
         except KeyError:
             # Should not happen with current templates but good for safety
             self.instruction = template.replace("{object}", obj_name).replace("{color}", color_name)
+
+        return self.instruction, self.target_object_entity
 
     def get_instruction(self):
         """
