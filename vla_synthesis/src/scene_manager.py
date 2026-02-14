@@ -64,15 +64,7 @@ class SceneManager:
                     gs.morphs.Panda(fixed=True, pos=(0, 0, 0))
                 )
             else:
-                # Fallback to MJCF if specific class not found
-                warnings.warn("Standard Franka/Panda asset not found in gs.morphs. Trying MJCF with placeholder path.")
-                self.robot = self.scene.add_entity(
-                    gs.morphs.MJCF(
-                        file='xml/franka_emika_panda/panda.xml',
-                        pos=(0, 0, 0),
-                        fixed=True,
-                    ),
-                )
+                raise RuntimeError("Standard Franka/Panda asset not found in gs.morphs.")
         except Exception as e:
             # Re-raise with context
             raise RuntimeError(f"Failed to load robot asset: {e}") from e
