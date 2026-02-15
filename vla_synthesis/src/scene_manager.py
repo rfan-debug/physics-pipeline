@@ -42,7 +42,7 @@ class SceneManager:
 
         self.render_res = (640, 480)
 
-    def load_robot(self):
+    def load_robot(self) -> None:
         """
         Load a Franka Panda robot from Genesis standard assets.
         Fix its base to (0, 0, 0).
@@ -77,10 +77,14 @@ class SceneManager:
             # Re-raise with context
             raise RuntimeError(f"Failed to load robot asset: {e}") from e
 
-    def setup_camera(self):
+    def setup_camera(self) -> None:
         """
         Add or update a camera looking at the workspace (approx coordinate 0.5, 0, 0).
         Includes domain randomization for camera position and angle.
+
+        Randomization details:
+        - Position: Base position + uniform noise in [-0.05, 0.05] per axis.
+        - Look-at target: Base target + uniform noise in [-0.02, 0.02] per axis.
         """
         # Base camera position (approximate, looking at workspace)
         # Positioned slightly elevated and back to view the workspace at (0.5, 0, 0)
@@ -116,9 +120,13 @@ class SceneManager:
                 self.camera.set_position(cam_pos)
                 self.camera.set_lookat(look_at)
 
-    def randomize_lighting(self):
+    def randomize_lighting(self) -> None:
         """
         Randomize light position and intensity.
+
+        Randomization details:
+        - Position: Uniformly sampled from x,y in [1.0, 3.0] and z in [2.0, 4.0].
+        - Intensity: Uniformly sampled from [2.0, 5.0].
         """
         # Random position
         light_pos = np.random.uniform(low=[1.0, 1.0, 2.0], high=[3.0, 3.0, 4.0])
@@ -143,7 +151,7 @@ class SceneManager:
             if hasattr(self.light, 'set_intensity'):
                 self.light.set_intensity(intensity)
 
-    def step(self):
+    def step(self) -> None:
         """
         Advance the physics simulation by one step.
         """
@@ -182,7 +190,7 @@ class SceneManager:
             seg if seg is not None else zero_seg
         )
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the scene, applying domain randomization to camera and lighting.
         """
