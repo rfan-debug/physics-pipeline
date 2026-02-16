@@ -80,7 +80,7 @@ class SceneManager:
     def setup_camera(self):
         """
         Add or update a camera looking at the workspace (approx coordinate 0.5, 0, 0).
-        Includes domain randomization for camera position and angle.
+        Includes domain randomization for camera position and angle (perturbations applied every reset).
         """
         # Base camera position (approximate, looking at workspace)
         # Positioned slightly elevated and back to view the workspace at (0.5, 0, 0)
