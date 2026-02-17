@@ -42,7 +42,9 @@ def main():
 
             # 2. Plan Expert Trajectory
             # Get target position. Genesis entities usually have get_pos() or we might need to access pos attribute
-            if hasattr(target_obj, 'get_pos'):
+            if hasattr(target_obj, 'get_position'):
+                target_pos = target_obj.get_position()
+            elif hasattr(target_obj, 'get_pos'):
                 target_pos = target_obj.get_pos()
             elif hasattr(target_obj, 'pos'):
                  target_pos = target_obj.pos
