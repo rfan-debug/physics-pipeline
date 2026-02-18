@@ -105,6 +105,8 @@ class TaskGenerator:
             # Should not happen with current templates but good for safety
             self.instruction = template.replace("{object}", obj_name).replace("{color}", color_name)
 
+        return self.instruction, self.target_object_entity
+
     def get_instruction(self):
         """
         Get the current task instruction and target object.
