@@ -11,6 +11,7 @@ class SceneManager:
     """
     Manages the Genesis scene for VLA data synthesis.
     Handles robot loading, camera setup with domain randomization, lighting, and rendering.
+    Implements Phase 1: Environment & Scene Manager Setup.
     """
     def __init__(self, debug: bool = False):
         if gs is None:
@@ -24,7 +25,7 @@ class SceneManager:
         self.light = None
         self.render_res = (640, 480)
 
-    def load_robot(self):
+    def load_robot(self) -> None:
         """
         Load a Franka Panda robot from Genesis standard assets.
         Fix its base to (0, 0, 0).
@@ -58,7 +59,7 @@ class SceneManager:
         except Exception as e:
             raise RuntimeError(f"Failed to load robot asset: {e}") from e
 
-    def setup_camera(self):
+    def setup_camera(self) -> None:
         """
         Add or update a camera looking at the workspace (approx coordinate 0.5, 0, 0).
         Includes domain randomization for camera position and angle.
@@ -90,7 +91,7 @@ class SceneManager:
                 self.camera.set_position(cam_pos)
                 self.camera.set_lookat(look_at)
 
-    def randomize_lighting(self):
+    def randomize_lighting(self) -> None:
         """
         Randomize light position and intensity.
         """
@@ -113,7 +114,7 @@ class SceneManager:
             if hasattr(self.light, 'set_intensity'):
                 self.light.set_intensity(intensity)
 
-    def step(self):
+    def step(self) -> None:
         """
         Advance the physics simulation by one step.
         """
@@ -149,7 +150,7 @@ class SceneManager:
             seg if seg is not None else zero_seg
         )
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset the scene, applying domain randomization to camera and lighting.
         """
