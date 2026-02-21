@@ -5,7 +5,8 @@ from unittest.mock import MagicMock, patch
 import os
 
 # Mock genesis module before importing SceneManager
-sys.modules['genesis'] = MagicMock()
+if 'genesis' not in sys.modules:
+    sys.modules['genesis'] = MagicMock()
 import genesis as gs
 
 # Ensure we can import the module

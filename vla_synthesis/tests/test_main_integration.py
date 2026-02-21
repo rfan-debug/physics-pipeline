@@ -5,7 +5,8 @@ import os
 import numpy as np
 
 # Mock genesis before importing anything else
-sys.modules['genesis'] = MagicMock()
+if 'genesis' not in sys.modules:
+    sys.modules['genesis'] = MagicMock()
 
 # Ensure project root is in path
 current_dir = os.path.dirname(os.path.abspath(__file__))
