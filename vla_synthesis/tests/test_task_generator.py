@@ -10,16 +10,17 @@ if "genesis" not in sys.modules:
 
 import genesis as gs
 
-# Define mock morphs
-gs.morphs = MagicMock()
-gs.morphs.Box = MagicMock(return_value="mock_box_morph")
-gs.morphs.Sphere = MagicMock(return_value="mock_sphere_morph")
-gs.morphs.Cylinder = MagicMock(return_value="mock_cylinder_morph")
-
+# Define mock morphs (moved to setUp)
 from vla_synthesis.src.task_generator import TaskGenerator
 
 class TestTaskGenerator(unittest.TestCase):
     def setUp(self):
+        # Configure gs mock for this test suite
+        gs.morphs = MagicMock()
+        gs.morphs.Box = MagicMock(return_value="mock_box_morph")
+        gs.morphs.Sphere = MagicMock(return_value="mock_sphere_morph")
+        gs.morphs.Cylinder = MagicMock(return_value="mock_cylinder_morph")
+
         self.scene = MagicMock()
         self.scene.add_entity.return_value = "mock_entity_handle"
 
